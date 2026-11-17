@@ -24,15 +24,20 @@ export class QuizzesService {
     return quiz;
   }
 
-  async findAllByUser(
-    userId: string,
+  async findAllQuiz(
     query: QueryQuizDto,
+    userId?: string | undefined
   ): Promise<{ data: QuizDocument[]; total: number; page: number; limit: number }> {
     const page = query.page ?? 1;
     const limit = Math.min(query.limit ?? 10, 100);
     const skip = (page - 1) * limit;
 
-    const filters: Record<string, unknown> = { userId };
+    const filters: Record<string, unknown> = {};
+
+    if (userId) {
+      filters.userId = userId;
+    }
+
     if (query.status) {
       filters.status = query.status;
     }
@@ -50,10 +55,16 @@ export class QuizzesService {
     return { data, total, page, limit };
   }
 
-  async findOneByUser(userId: string, id: string): Promise<QuizDocument> {
+  async findOneQuiz(id: string, userId?: string): Promise<QuizDocument> {
     this.ensureObjectId(id);
 
-    const quiz = await this.quizModel.findOne({ _id: id, userId }).exec();
+    const filters: Record<string, unknown> = { _id: id };
+
+    if (userId) {
+      filters.userId = userId;
+    }
+
+    const quiz = await this.quizModel.findOne(filters).exec();
 
     if (!quiz) {
       throw new NotFoundException('Quiz not found');
@@ -67,7 +78,7 @@ export class QuizzesService {
     id: string,
     dto: UpdateQuizDto,
   ): Promise<QuizDocument> {
-    const quiz = await this.findOneByUser(userId, id);
+    const quiz = await this.findOneQuiz(userId, id);
     const updates = this.normalizeUpdatePayload(dto);
 
     Object.assign(quiz, updates);

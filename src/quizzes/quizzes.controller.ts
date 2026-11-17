@@ -38,19 +38,26 @@ export class QuizzesController {
     return this.quizzesService.create(dto, user.sub);
   }
 
-  @Get()
+  @Get('me')
   @ApiOperation({ summary: 'List authenticated user quizzes' })
   @ApiResponse({ status: 200, description: 'Quiz list returned' })
   findAll(@CurrentUser() user: ClerkUser, @Query() query: QueryQuizDto) {
-    return this.quizzesService.findAllByUser(user.sub, query);
+    return this.quizzesService.findAllQuiz(query, user.sub);
   }
 
-  @Get(':id')
+  @Get('me/:id')
   @ApiOperation({ summary: 'Get a quiz by id for the authenticated user' })
   @ApiResponse({ status: 200, description: 'Quiz returned' })
   @ApiResponse({ status: 404, description: 'Quiz not found' })
   findOne(@Param('id') id: string, @CurrentUser() user: ClerkUser) {
-    return this.quizzesService.findOneByUser(user.sub, id);
+    return this.quizzesService.findOneQuiz(id, user.sub);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'List all quizzes' })
+  @ApiResponse({ status: 200, description: 'Quiz list returned' })
+  findAllPublic(@Query() query: QueryQuizDto) {
+    return this.quizzesService.findAllQuiz(query);
   }
 
   @Patch(':id')
